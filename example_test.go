@@ -7,6 +7,19 @@ import (
 	"github.com/gongo/text-parameters"
 )
 
+func ExampleMarshal() {
+	params := &parameters.TextParameters{
+		"Foo": "foobar",
+		"Bar": "golang",
+	}
+
+	encoded := parameters.Marshal(params)
+	fmt.Println(encoded)
+	// Output:
+	// Foo: foobar
+	// Bar: golang
+}
+
 func ExampleUnmarshal() {
 	body := `foo: 3
 bar: 4
