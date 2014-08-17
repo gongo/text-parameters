@@ -8,10 +8,10 @@ import (
 )
 
 type Decoder struct {
-	reader io.ReadSeeker
+	reader io.Reader
 }
 
-func NewDecorder(r io.ReadSeeker) *Decoder {
+func NewDecorder(r io.Reader) *Decoder {
 	return &Decoder{reader: r}
 }
 

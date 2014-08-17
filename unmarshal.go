@@ -8,7 +8,7 @@ import (
 
 var parameterLinePattern = regexp.MustCompile("^([!-9;-~]+)(?:[ \t]*:[ \t]*(.+))?$")
 
-func Unmarshal(r io.ReadSeeker) (*TextParameters, error) {
+func Unmarshal(r io.Reader) (*TextParameters, error) {
 	params := &TextParameters{}
 
 	scanner := bufio.NewScanner(r)
