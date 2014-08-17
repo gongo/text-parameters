@@ -16,8 +16,8 @@ func ExampleMarshal() {
 	encoded := parameters.Marshal(params)
 	fmt.Println(encoded)
 	// Output:
-	// Foo: foobar
 	// Bar: golang
+	// Foo: foobar
 }
 
 func ExampleUnmarshal() {
