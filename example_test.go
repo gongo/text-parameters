@@ -1,6 +1,7 @@
 package parameters_test
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -30,6 +31,28 @@ baz: 5`
 	fmt.Println(obj.Get("foo"), obj.Get("bar"), obj.Get("baz"))
 	// Output:
 	// 3 4 5
+}
+
+func ExampleEncoder() {
+	s := struct {
+		Foo  float64
+		Piyo int
+		Bar  string `textparam:"barbaz"`
+	}{
+		Foo:  1.41421356,
+		Piyo: 12345,
+		Bar:  "golang",
+	}
+
+	var b bytes.Buffer
+	encoder := parameters.NewEncoder(&b)
+	encoder.Encode(&s)
+
+	fmt.Print(b.String())
+	// Output:
+	// Foo: 1.41421356
+	// Piyo: 12345
+	// barbaz: golang
 }
 
 func ExampleDecoder() {
