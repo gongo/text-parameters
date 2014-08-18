@@ -84,7 +84,6 @@ func TestDecodeWithTag(t *testing.T) {
 type decodeFailedTest struct {
 	b string
 	s interface{}
-	e error
 }
 
 var decodeFailedTests = []decodeFailedTest{
@@ -93,7 +92,6 @@ var decodeFailedTests = []decodeFailedTest{
 		s: &struct {
 			A int // should be string
 		}{},
-		e: &DecodeFieldTypeError{},
 	},
 	{
 		b: "A: foobar\nB: 1.4142\n",
@@ -101,14 +99,12 @@ var decodeFailedTests = []decodeFailedTest{
 			A string
 			B int // should be float{32,64}
 		}{},
-		e: &DecodeFieldTypeError{},
 	},
 	{
 		b: "C: -1\n",
 		s: &struct {
 			C uint32 // should be signed integer
 		}{},
-		e: &DecodeFieldTypeError{},
 	},
 	{
 		b: "ddd: 12.345\neeeee: hoge",
@@ -116,21 +112,10 @@ var decodeFailedTests = []decodeFailedTest{
 			D3 float64 `parameters:"ddd"`
 			E5 float64 `parameters:"eeeee"` // should be string
 		}{},
-		e: &DecodeFieldTypeError{},
-	},
-	{
-		b: "d dd: 12.345\n", // format error
-		s: &struct{}{},
-		e: &DecodeFormatError{},
-	},
-	{
-		b: "ddd: 12.345\n",
-		s: struct{}{},
-		e: &CodingStructPointerError{},
 	},
 }
 
-func TestDecodeFailed(t *testing.T) {
+func TestDecodeFailedFieldType(t *testing.T) {
 	for _, test := range decodeFailedTests {
 		decoder := NewDecorder(strings.NewReader(test.b))
 		err := decoder.Decode(test.s)
@@ -143,16 +128,41 @@ func TestDecodeFailed(t *testing.T) {
 			)
 		}
 
-		actualError := reflect.TypeOf(err)
-		expectError := reflect.TypeOf(test.e)
-
-		if actualError != expectError {
+		if _, ok := err.(*DecodeFieldTypeError); !ok {
 			t.Fatalf(
-				"TestDecodedFailed: expect: %s, actual = %s (%s)",
-				expectError,
-				actualError,
+				"TestDecodedFailed: expect: DecodeFieldTypeError, actual = %s (%s)",
+				reflect.TypeOf(err),
 				err,
 			)
 		}
+	}
+}
+
+func TestDecodeFailedOther(t *testing.T) {
+	var decoder *Decoder
+	var err error
+
+	s := &struct{}{}
+
+	decoder = NewDecorder(strings.NewReader("d dd: 12.345\n"))
+	err = decoder.Decode(s)
+
+	if _, ok := err.(*DecodeFormatError); !ok {
+		t.Fatalf(
+			"TestDecodedFailedOther: expect: DecodeFormatError, actual = %s (%s)",
+			reflect.TypeOf(err),
+			err,
+		)
+	}
+
+	decoder = NewDecorder(strings.NewReader("ddd: 12.345\n"))
+	err = decoder.Decode(*s)
+
+	if _, ok := err.(*CodingStructPointerError); !ok {
+		t.Fatalf(
+			"TestDecodedFailedOther: expect: DecodeFormatError, actual = %s (%s)",
+			reflect.TypeOf(err),
+			err,
+		)
 	}
 }

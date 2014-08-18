@@ -76,14 +76,10 @@ func TestEncodeFailed(t *testing.T) {
 
 	err := encoder.Encode(s)
 
-	actualError := reflect.TypeOf(err)
-	expectError := reflect.TypeOf(&CodingStructPointerError{})
-
-	if actualError != expectError {
+	if _, ok := err.(*CodingStructPointerError); !ok {
 		t.Fatalf(
-			"TestEncodeFailed: expect: %s, actual = %s (%s)",
-			expectError,
-			actualError,
+			"TestEncodeFailed: expect: CodingStructPointerError, actual = %s (%s)",
+			reflect.TypeOf(err),
 			err,
 		)
 	}
