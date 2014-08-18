@@ -5,6 +5,14 @@ import (
 	"reflect"
 )
 
+type CodingStructPointerError struct {
+	rv reflect.Value
+}
+
+func (e *CodingStructPointerError) Error() string {
+	return fmt.Sprintf("%v must be a struct pointer", e.rv)
+}
+
 type DecodeFormatError struct {
 	invalidLine string
 }

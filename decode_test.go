@@ -10,11 +10,13 @@ import (
 func TestDecode(t *testing.T) {
 	received := 10
 	time := 0.3838
-	body := fmt.Sprintf("Received: %d\nTime: %f\n", received, time)
+	var money uint = 1980
+	body := fmt.Sprintf("Received: %d\nTime: %f\nMoney: %d", received, time, money)
 
 	type st struct {
 		Received int
 		Time     float64
+		Money    uint
 	}
 	s := st{}
 
@@ -30,6 +32,10 @@ func TestDecode(t *testing.T) {
 
 	if s.Time != time {
 		t.Fatalf("TestDecode: expect = %f, actual = %v", time, s.Time)
+	}
+
+	if s.Money != money {
+		t.Fatalf("TestDecode: expect = %f, actual = %v", money, s.Money)
 	}
 }
 
@@ -116,6 +122,11 @@ var decodeFailedTests = []decodeFailedTest{
 		b: "d dd: 12.345\n", // format error
 		s: &struct{}{},
 		e: &DecodeFormatError{},
+	},
+	{
+		b: "ddd: 12.345\n",
+		s: struct{}{},
+		e: &CodingStructPointerError{},
 	},
 }
 

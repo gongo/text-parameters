@@ -1,7 +1,6 @@
 package parameters
 
 import (
-	"fmt"
 	"io"
 	"reflect"
 	"strconv"
@@ -21,7 +20,7 @@ func (e *Encoder) Encode(v interface{}) error {
 	rv := reflect.ValueOf(v)
 
 	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("%v must be a struct pointer", rv)
+		return &CodingStructPointerError{rv}
 	}
 
 	rv = rv.Elem()

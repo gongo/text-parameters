@@ -2,6 +2,7 @@ package parameters
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 )
 
@@ -64,5 +65,26 @@ transfer-time: 12.345
 
 	if actual.String() != expect {
 		t.Fatalf("TestEncode: expect = %s, actual = %s", expect, actual.String())
+	}
+}
+
+func TestEncodeFailed(t *testing.T) {
+	var actual bytes.Buffer
+	encoder := NewEncoder(&actual)
+
+	s := struct{}{}
+
+	err := encoder.Encode(s)
+
+	actualError := reflect.TypeOf(err)
+	expectError := reflect.TypeOf(&CodingStructPointerError{})
+
+	if actualError != expectError {
+		t.Fatalf(
+			"TestEncodeFailed: expect: %s, actual = %s (%s)",
+			expectError,
+			actualError,
+			err,
+		)
 	}
 }
