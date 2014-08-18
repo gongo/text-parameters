@@ -43,10 +43,10 @@ func TestDecodeWithTag(t *testing.T) {
 	)
 
 	type st struct {
-		Received   int     `textparam:"packet-received"`
-		Time       float64 `textparam:"transfer-time"`
+		Received   int     `parameters:"packet-received"`
+		Time       float64 `parameters:"transfer-time"`
 		Extra      string
-		extraField string `textparam:"transfer-time"`
+		extraField string `parameters:"transfer-time"`
 	}
 	s := st{}
 
@@ -107,8 +107,8 @@ var decodeFailedTests = []decodeFailedTest{
 	{
 		b: "ddd: 12.345\neeeee: hoge",
 		s: &struct {
-			D3 float64 `textparam:"ddd"`
-			E5 float64 `textparam:"eeeee"` // should be string
+			D3 float64 `parameters:"ddd"`
+			E5 float64 `parameters:"eeeee"` // should be string
 		}{},
 		e: &DecodeFieldTypeError{},
 	},

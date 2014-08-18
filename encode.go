@@ -43,8 +43,8 @@ func (e *Encoder) encode(rt reflect.StructField, rv reflect.Value, params *TextP
 	}
 
 	keyName := rt.Name
-	if rt.Tag.Get("textparam") != "" {
-		keyName = rt.Tag.Get("textparam")
+	if rt.Tag.Get("parameters") != "" {
+		keyName = rt.Tag.Get("parameters")
 	}
 
 	switch rt.Type.Kind() {

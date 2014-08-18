@@ -38,7 +38,7 @@ func main() {
 
 	u := struct {
 		Name    string
-		LoginId string `textparam:"login"`
+		LoginId string `parameters:"login"`
 		Age     int
 	}{}
 
@@ -76,7 +76,7 @@ func main() {
 
 	u := struct {
 		Name    string
-		LoginId string `textparam:"login_id"`
+		LoginId string `parameters:"login_id"`
 		Rate    float64
 	}{
 		Name:    "Wataru MIYAGUNI",

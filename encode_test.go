@@ -44,10 +44,10 @@ func TestEncodeWithTag(t *testing.T) {
 	encoder := NewEncoder(&actual)
 
 	type st struct {
-		Received   int     `textparam:"packet-received"`
-		Time       float64 `textparam:"transfer-time"`
+		Received   int     `parameters:"packet-received"`
+		Time       float64 `parameters:"transfer-time"`
 		Extra      string
-		extraField string `textparam:"extra-transfer-time"`
+		extraField string `parameters:"extra-transfer-time"`
 	}
 	s := st{
 		Received:   1024,

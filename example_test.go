@@ -37,7 +37,7 @@ func ExampleEncoder() {
 	s := struct {
 		Foo  float64
 		Piyo int
-		Bar  string `textparam:"barbaz"`
+		Bar  string `parameters:"barbaz"`
 	}{
 		Foo:  1.41421356,
 		Piyo: 12345,
@@ -62,7 +62,7 @@ Piyo: 123`
 
 	s := struct {
 		Foo  float64
-		Bar  string `textparam:"barbaz"`
+		Bar  string `parameters:"barbaz"`
 		Piyo int
 	}{}
 

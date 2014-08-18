@@ -44,8 +44,8 @@ func (d *Decoder) store(rt reflect.StructField, rv reflect.Value, params *TextPa
 	}
 
 	keyName := rt.Name
-	if rt.Tag.Get("textparam") != "" {
-		keyName = rt.Tag.Get("textparam")
+	if rt.Tag.Get("parameters") != "" {
+		keyName = rt.Tag.Get("parameters")
 	}
 
 	body := params.Get(keyName)
