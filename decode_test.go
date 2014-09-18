@@ -8,93 +8,83 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	received := 10
-	time := 0.3838
-	var money uint = 1980
-	body := fmt.Sprintf("Received: %d\nTime: %f\nMoney: %d", received, time, money)
-
 	type st struct {
 		Received int
 		Time     float64
 		Money    uint
 	}
-	s := st{}
+	actual := st{}
+	expect := st{
+		Received: 10,
+		Time:     0.3838,
+		Money:    uint(1980),
+	}
 
+	body := fmt.Sprintf(
+		"Received: %d\nTime: %f\nMoney: %d",
+		expect.Received,
+		expect.Time,
+		expect.Money,
+	)
 	decoder := NewDecorder(strings.NewReader(body))
 
-	if err := decoder.Decode(&s); err != nil {
+	if err := decoder.Decode(&actual); err != nil {
 		t.Fatal(err)
 	}
 
-	if s.Received != received {
-		t.Fatalf("TestDecode: expect = %d, actual = %v", received, s.Received)
-	}
-
-	if s.Time != time {
-		t.Fatalf("TestDecode: expect = %f, actual = %v", time, s.Time)
-	}
-
-	if s.Money != money {
-		t.Fatalf("TestDecode: expect = %f, actual = %v", money, s.Money)
+	if !reflect.DeepEqual(actual, expect) {
+		t.Fatalf("TestDecode: expect = %v, actual = %v", expect, actual)
 	}
 }
 
 func TestDecodeWithTag(t *testing.T) {
-	received := 10
-	time := 0.3838
-	body := fmt.Sprintf(
-		"packet-received: %d\ntransfer-time: %f\nextra: foobar\n",
-		received,
-		time,
-	)
-
 	type st struct {
 		Received   int     `parameters:"packet-received"`
 		Time       float64 `parameters:"transfer-time"`
 		Extra      string
 		extraField string `parameters:"transfer-time"`
 	}
-	s := st{}
+	actual := st{}
+	expect := st{
+		Received:   10,
+		Time:       0.3838,
+		Extra:      "", // Has not tag and same name parameter in body.
+		extraField: "", // Unexported field.
+	}
 
+	body := fmt.Sprintf(
+		"packet-received: %d\ntransfer-time: %f\nextra: foobar\n",
+		expect.Received,
+		expect.Time,
+	)
 	decoder := NewDecorder(strings.NewReader(body))
 
-	if err := decoder.Decode(&s); err != nil {
+	if err := decoder.Decode(&actual); err != nil {
 		t.Fatal(err)
 	}
 
-	if s.Received != received {
-		t.Fatalf("TestDecode: expect = %d, actual = `%v`", received, s.Received)
-	}
-
-	if s.Time != time {
-		t.Fatalf("TestDecode: expect = %f, actual = `%v`", time, s.Time)
-	}
-
-	// not store to `Extra` field because has not tag.
-	if s.Extra != "" {
-		t.Fatalf("TestDecode: expect = \"\", actual = `%v`", s.Extra)
-	}
-
-	// not store to `extraField` field because that is unexported field.
-	if s.extraField != "" {
-		t.Fatalf("TestDecode: expect = \"\", actual = `%v`", s.extraField)
+	if !reflect.DeepEqual(actual, expect) {
+		t.Fatalf("TestDecodeWithTag: expect = %v, actual = %v", expect, actual)
 	}
 }
 
 type decodeFailedTest struct {
 	b string
+	e error
 	s interface{}
 }
 
 var decodeFailedTests = []decodeFailedTest{
 	{
 		b: "A: foobar\n",
+		e: &DecodeFieldTypeError{},
 		s: &struct {
 			A int // should be string
 		}{},
 	},
 	{
 		b: "A: foobar\nB: 1.4142\n",
+		e: &DecodeFieldTypeError{},
 		s: &struct {
 			A string
 			B int // should be float{32,64}
@@ -102,16 +92,28 @@ var decodeFailedTests = []decodeFailedTest{
 	},
 	{
 		b: "C: -1\n",
+		e: &DecodeFieldTypeError{},
 		s: &struct {
 			C uint32 // should be signed integer
 		}{},
 	},
 	{
 		b: "ddd: 12.345\neeeee: hoge",
+		e: &DecodeFieldTypeError{},
 		s: &struct {
 			D3 float64 `parameters:"ddd"`
 			E5 float64 `parameters:"eeeee"` // should be string
 		}{},
+	},
+	{
+		b: "d dd: 12.345\n",
+		e: &DecodeFormatError{},
+		s: &struct{}{},
+	},
+	{
+		b: "ddd: 12.345\n",
+		e: &CodingStructPointerError{},
+		s: struct{}{}, // should be a pointer
 	},
 }
 
@@ -128,41 +130,16 @@ func TestDecodeFailedFieldType(t *testing.T) {
 			)
 		}
 
-		if _, ok := err.(*DecodeFieldTypeError); !ok {
+		expectErrorType := reflect.TypeOf(test.e)
+		actualErrorType := reflect.TypeOf(err)
+
+		if expectErrorType != actualErrorType {
 			t.Fatalf(
-				"TestDecodedFailed: expect: DecodeFieldTypeError, actual = %s (%s)",
-				reflect.TypeOf(err),
+				"TestDecodedFailed: expect: %s, actual = %s (%s)",
+				expectErrorType,
+				actualErrorType,
 				err,
 			)
 		}
-	}
-}
-
-func TestDecodeFailedOther(t *testing.T) {
-	var decoder *Decoder
-	var err error
-
-	s := &struct{}{}
-
-	decoder = NewDecorder(strings.NewReader("d dd: 12.345\n"))
-	err = decoder.Decode(s)
-
-	if _, ok := err.(*DecodeFormatError); !ok {
-		t.Fatalf(
-			"TestDecodedFailedOther: expect: DecodeFormatError, actual = %s (%s)",
-			reflect.TypeOf(err),
-			err,
-		)
-	}
-
-	decoder = NewDecorder(strings.NewReader("ddd: 12.345\n"))
-	err = decoder.Decode(*s)
-
-	if _, ok := err.(*CodingStructPointerError); !ok {
-		t.Fatalf(
-			"TestDecodedFailedOther: expect: DecodeFormatError, actual = %s (%s)",
-			reflect.TypeOf(err),
-			err,
-		)
 	}
 }
